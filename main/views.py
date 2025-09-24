@@ -12,7 +12,6 @@ from django.urls import reverse
 
 
 @login_required(login_url='/login')
-@login_required(login_url='/login')
 def show_main(request):
     filter_type = request.GET.get("filter", "all")  # default 'all'
 
@@ -30,6 +29,7 @@ def show_main(request):
     }
     return render(request, "main.html",context)
 
+@login_required(login_url='/login')
 def create_news(request):
     form = NewsForm(request.POST or None)
 
@@ -56,6 +56,24 @@ def show_news(request, id):
     }
 
     return render(request, "news_detail.html", context)
+
+def edit_news(request, id):
+    news = get_object_or_404(News, pk=id)
+    form = NewsForm(request.POST or None, instance=news)
+    if form.is_valid() and request.method == 'POST':
+        form.save()
+        return redirect('main:show_main')
+
+    context = {
+        'form': form
+    }
+
+    return render(request, "edit_news.html", context)
+
+def delete_news(request, id):
+    news = get_object_or_404(News, pk=id)
+    news.delete()
+    return HttpResponseRedirect(reverse('main:show_main'))
 
 def register(request):
     form = UserCreationForm()
